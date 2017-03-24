@@ -1,0 +1,6 @@
+-name counter
+
+-setcookie counter_cookie
+
++K true
++A30
