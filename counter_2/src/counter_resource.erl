@@ -11,8 +11,8 @@
 -include_lib("webmachine/include/webmachine.hrl").
 
 init([]) ->
-    {ok, maps:new()}.
-    %% {{trace, "/tmp"}, maps:new()}. Debug
+    %% {ok, maps:new()}.
+    {{trace, "/tmp"}, maps:new()}. %% Debug
 
 uri_too_long(ReqData, State) ->
     {wrq:path_info(ReqData) < 4, ReqData, State#{ length => length(wrq:path_info(ReqData))}}.
@@ -69,7 +69,7 @@ to_json(ReqData, State) ->
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 get_from_path(ReqData, Key) ->
     case lists:keyfind(Key, 1, wrq:path_info(ReqData)) of
-        {id, Id} ->
+        {Key, Id} ->
             case string:to_integer(Id) of
                 {error, _} -> error;
                 {Value, _} -> Value

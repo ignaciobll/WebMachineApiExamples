@@ -20,7 +20,7 @@ malformed_request(ReqData, State) ->
         {op, "new"} when Length == 1 ->
             {false, ReqData, State#{ op => new }};
         {op, "balance"} when Length == 2 ->
-            {false, ReqData, State#{ op => balance }};
+            {false, ReqData, State#{ op => balance, account => get_from_path(ReqData, account) }};
         {op, "deposit"} when Length == 3 ->
             {false, ReqData,
              State#{ op => deposit , account => get_from_path(ReqData, account),
@@ -76,7 +76,7 @@ to_json(ReqData, State) ->
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 get_from_path(ReqData, Key) ->
     case lists:keyfind(Key, 1, wrq:path_info(ReqData)) of
-        {id, Id} ->
+        {Key, Id} ->
             case string:to_integer(Id) of
                 {error, _} -> error;
                 {Value, _} -> Value

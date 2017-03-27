@@ -8,8 +8,8 @@
 -spec dispatch() -> [webmachine_dispatcher:route()].
 dispatch() ->
     lists:flatten([
-                   {[op, id, value], counter_resource, []},
-                   {[op, id], counter_resource, []},
+                   {[id, op, value], counter_resource, []},
+                   {[id, op], counter_resource, []},
                    {[op], counter_resource, []}
 		  ]).
 
