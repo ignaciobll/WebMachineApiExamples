@@ -1,0 +1,38 @@
+* Counters Server
+
+** Build the application
+
+#+BEGIN_SRC shell
+$ rebar3 compile
+#+END_SRC
+
+** Start up the application
+#+BEGIN_SRC shell
+$ rebar3 release
+...
+$ ./_build/default/rel/counter/bin/counter console
+#+END_SRC
+
+/or/
+
+#+BEGIN_SRC shell
+$ rebar3 shell
+#+END_SRC
+
+** Operations
+|-------------+-------------------+------------------+-------------+------------------------|
+| HTTP Method | Route             | Content Tye      | Status Code | Response               |
+|-------------+-------------------+------------------+-------------+------------------------|
+| POST        | /new              | application/json |         200 | {"id":"1", "value":0}  |
+|-------------+-------------------+------------------+-------------+------------------------|
+| GET         | /{id}/get         | application/json |         200 | {"id":"1", "value":20} |
+|-------------+-------------------+------------------+-------------+------------------------|
+| POST        | /{id}/inc         | application/json |         201 | {"result":"ok"}        |
+|-------------+-------------------+------------------+-------------+------------------------|
+| POST        | /{id}/dec         | application/json |         201 | {"result":"ok"}        |
+|-------------+-------------------+------------------+-------------+------------------------|
+| POST        | /{id}/set/{value} | application/json |         201 | {"result":"ok"}        |
+|-------------+-------------------+------------------+-------------+------------------------|
+
+** TODO
+JSONgen testing with POST methods is not working...

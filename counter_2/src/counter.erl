@@ -5,7 +5,7 @@
 -export([handle_call/3, terminate/2]).
 -export([new/0, new/1, get/1, set/2, inc/1, dec/1, delete/1]).
 
-init(_) -> {ok,0}.
+init(_) -> {ok, 0}.
 
 handle_call(Msg, _From, State) ->
     case Msg of
