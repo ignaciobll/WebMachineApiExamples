@@ -1,13 +1,8 @@
 {
-    "type": "object",
-    "properties": {
-	"id": "integer"
-    },
-    
     "links": [
 	{
 	    "rel": "login",
-	    "href": "localhost:8080/counters/{id}/get",
+	    "href": "http://localhost:8080/counters/1/get",
 	    "title": "start_counter",
 	    "method": "GET",
 	    "targetSchema": { "$ref": "start_response.jsch#"}

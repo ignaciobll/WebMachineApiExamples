@@ -42,7 +42,7 @@ to_json(ReqData, State) ->
 		    counter:get(PCounter);
 		_ -> error
 	    end,
-    Content = {struct, [{IdCounter, Value}]},
+    Content = {struct, [{id,IdCounter}, {value,Value}]},
     JContent = mochijson:encode(Content),
     {JContent, ReqData, State}.
 

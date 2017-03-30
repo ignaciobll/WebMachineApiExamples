@@ -1,0 +1,29 @@
+{
+    "type": "object",
+    "required": ["id", "value"],
+    "properties": {
+	"id": {
+	    "type": "string"
+	},
+	"value": {
+	    "type": "integer"
+	}
+    },
+
+    "links" : [
+	{
+	    "rel": "counter_get",
+	    "href": "http://localhost:8080/counters/{id}/get",
+	    "title": "counter_get",
+	    "method": "GET",
+	    "target_schmea": {"$ref": "counter_get_response.jsch#"}
+	},
+	{
+	    "rel": "counter_inc",
+	    "href": "http://localhost:8080/counters/{id}/inc",
+	    "title": "counter_inc",
+	    "method": "GET",
+	    "target_schmea": {"$ref": "counter_inc_response.jsch#"}
+	}	
+    ]
+}

@@ -2,6 +2,9 @@
     "type": "object",
     "properties": {
 	"id": {
+	    "type": "string"
+	},
+	"value": {
 	    "type": "integer"
 	}
     }
