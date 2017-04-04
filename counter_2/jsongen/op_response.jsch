@@ -2,6 +2,6 @@
     "type": "object",
     "required": ["result"],
     "properties": {
-	"result": {"type": "string"}
+	"result": { "type": "string" }
     }
 }

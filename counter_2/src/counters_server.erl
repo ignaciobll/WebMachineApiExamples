@@ -4,7 +4,7 @@
 
 -export([init/1]).
 -export([handle_call/3, terminate/2]).
--export([start/0, new/0, get/1, inc/1, dec/1, set/2, op/2, exists/1]).
+-export([start/0, new/0, get/1, inc/1, dec/1, set/2, exists/1, get_ids/0]).
 
 init(_) -> {ok, maps:new()}.
 
@@ -75,9 +75,5 @@ set(CounterId, Value) -> gen_server:call(counters_server, {set, CounterId, Value
 exists(CounterId) ->
     lists:member(CounterId, gen_server:call(counters_server, {keys})).
 
-op(CounterId, Op) ->
-    case Op of
-        "get" -> counters_server:get(CounterId);
-        "inc" -> inc(CounterId);
-        "dec" -> dec(CounterId)
-    end.
+get_ids() -> 
+    lists:map(fun(X) -> integer_to_list(X) end, gen_server:call(counters_server, {keys})).

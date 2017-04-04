@@ -1,0 +1,11 @@
+{
+    "links": [
+        {
+            "rel": "ids",
+            "href": "http://localhost:8080/ids",
+            "title": "ids",
+            "method": "GET",
+            "targetSchema": { "$ref": "ids_response.jsch#" }
+        }
+    ]
+}

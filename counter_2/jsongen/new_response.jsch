@@ -11,28 +11,37 @@
             "href": "http://localhost:8080/{id}/inc",
             "title": "inc",
             "method": "POST",
-            "targetSchema": { "$ref": "op_response.jsch#"}
+	    "schema": {
+		"type": "string"
+	    },
+            "targetSchema": { "$ref": "op_response.jsch#" }
         },
         {
             "rel": "dec",
             "href": "http://localhost:8080/{id}/dec",
             "title": "dec",
             "method": "POST",
-            "targetSchema": { "$ref": "op_response.jsch#"}
+	    "schema": {
+		"type": "string"
+	    },
+            "targetSchema": { "$ref": "op_response.jsch#" }
         },
         {
             "rel": "set",
             "href": "http://localhost:8080/{id}/set/20",
             "title": "set",
-            "method": "GET",
-            "targetSchema": { "$ref": "op_response.jsch#"}
+            "method": "POST",
+	    "schema": {
+		"type": "string"
+	    },
+            "targetSchema": { "$ref": "op_response.jsch#" }
         },
         {
             "rel": "get",
             "href": "http://localhost:8080/{id}/get",
             "title": "get",
             "method": "GET",
-            "targetSchema": { "$ref": "get_response.jsch#"}
-        },
+            "targetSchema": { "$ref": "counter.jsch#" }
+        }
     ]
 }

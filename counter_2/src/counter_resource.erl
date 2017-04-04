@@ -3,7 +3,6 @@
          uri_too_long/2,
          malformed_request/2,
          resource_exists/2,
-         valid_content_headers/2,
          allowed_methods/2,
          content_types_provided/2,
          process_post/2,
@@ -15,7 +14,7 @@
 %% This function is called after Dispatch
 init([]) ->
     {ok, maps:new()}.
-    %% {{trace, "/tmp"}, maps:new()}. %% Debug
+%% {{trace, "/tmp"}, maps:new()}. %% Debug
 
 %% function that checks if the request is too long, (if uri_too_long
 %% -> true, else false)
@@ -35,6 +34,8 @@ malformed_request(ReqData, State) ->
     case lists:keyfind(op, 1, wrq:path_info(ReqData)) of
         {op, "new"} when (Length == 1) and (Method == 'POST') ->
             {false, ReqData, State#{ op => new }};
+        {op, "ids"} when (Length == 1) and (Method == 'GET') ->
+            {false, ReqData, State#{ op => ids }};
         {op, "get"} when (Length == 2) and (Method == 'GET') ->
             {false, ReqData, State#{ op => get, id => get_from_path(ReqData, id) }};
         {op, "inc"} when (Length == 2) and (Method == 'POST')->
@@ -48,10 +49,6 @@ malformed_request(ReqData, State) ->
             {true, ReqData, State}
     end.
 
-%% TODO
-valid_content_headers(ReqData, State) ->
-    {true, ReqData, State}.
-
 %% function that checks if the counter of a request exists
 resource_exists(ReqData, State) ->
     {lists:foldl(fun(X, Acc) ->
@@ -63,7 +60,6 @@ resource_exists(ReqData, State) ->
                              _ -> true and Acc
                          end
                  end, true, maps:keys(State)), ReqData, State}.
-
 
 %% function that gives the content types that the API provides (html,
 %% json...)
@@ -88,7 +84,13 @@ process_post(ReqData, State) ->
 
 %% function that creates the json response
 to_json(ReqData, State) ->
-    Json = {struct, [{id, maps:get(id, State)}, {value, counters_server:get(maps:get(id, State))}]},
+    Json =
+        case maps:get(op, State) of
+            get ->
+                {struct, [{id, maps:get(id, State)}, {value, counters_server:get(maps:get(id, State))}]};
+            ids ->
+                {struct, [{ids, {array, counters_server:get_ids()}}]}
+        end,
     {mochijson:encode(Json), ReqData, State}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
