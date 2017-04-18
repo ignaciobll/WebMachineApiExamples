@@ -1,77 +1,103 @@
 -module(bank_resource).
 -export([init/1,
          uri_too_long/2,
+         allowed_methods/2,
          malformed_request/2,
          resource_exists/2,
          content_types_provided/2,
-         to_json/2]).
+         content_types_accepted/2,
+         post_is_create/2,
+         create_path/2,
+         allow_missing_post/2,
+         process_post/2,
+         to_json/2,
+         from_json/2
+        ]).
 
 -include_lib("webmachine/include/webmachine.hrl").
 
-init([]) ->
-    {ok, maps:new()}.
-
-uri_too_long(ReqData, State) ->
-    {wrq:path_info(ReqData) < 5, ReqData, State#{ length => length(wrq:path_info(ReqData)) }}.
-
-malformed_request(ReqData, State) ->
-    {ok, Length} = maps:find(length, State),
-    case lists:keyfind(op, 1, wrq:path_info(ReqData)) of
-        {op, "new"} when Length == 1 ->
-            {false, ReqData, State#{ op => new }};
-        {op, "balance"} when Length == 2 ->
-            {false, ReqData, State#{ op => balance, account => get_from_path(ReqData, account) }};
-        {op, "deposit"} when Length == 3 ->
-            {false, ReqData,
-             State#{ op => deposit , account => get_from_path(ReqData, account),
-                     quantity => get_from_path(ReqData, quantity) }};
-        {op, "withdraw"} when Length == 3 ->
-            {false, ReqData,
-             State#{ op => withdraw , account => get_from_path(ReqData, account),
-                     quantity => get_from_path(ReqData, quantity) }};
-        {op, "transfer"} when Length == 4 ->
-            {false, ReqData,
-             State#{ op => withdraw , account => get_from_path(ReqData, account),
-                     quantity => get_from_path(ReqData, quantity),
-                     to_account => get_from_path(ReqData, to_account) }};
-        _ ->
-            {true, ReqData, State}
-    end.
-
-resource_exists(ReqData, State) ->
-    {lists:foldl(fun(X, Acc) ->
-                         case maps:get(X, State) of
-                             Value when X == account ->
-                                 bank:exists(Value, bank) and Acc;
-                             error ->
-                                 false and Acc;
-                             _ ->
-                                 true and Acc
-                         end
-                 end, true, maps:keys(State)), ReqData, State}.
+init([Op]) ->
+    {ok, #{ op => Op }}.
+%% {{trace, "/tmp"}, #{ op => Op }}. %% Debug
 
 content_types_provided(ReqData, State) ->
-    {[{"application/json", to_json}], ReqData, State}.
+    {[{"application/json", to_json} ], ReqData, State}.
+
+content_types_accepted(ReqData, State) ->
+    {[{"application/json", from_json}], ReqData, State}.
+
+allowed_methods(ReqData, State) ->
+    {['GET', 'POST', 'HEAD'], ReqData, State}.
+
+uri_too_long(ReqData, State) ->
+    {wrq:path_info(ReqData) < 3, ReqData, State#{ length => length(wrq:path_info(ReqData)) }}.
+
+malformed_request(ReqData, State) ->
+    Method = wrq:method(ReqData),
+    Length = maps:get(length, State),
+    case maps:get(op, State) of
+        new when (Length == 0) and (Method == 'POST') ->
+            {false, ReqData, State};
+        get_info when (Length == 1) and (Method == 'GET') ->
+            {false, ReqData, State#{ account => get_from_path(ReqData, account) }};
+        deposit when (Length == 1) and (Method == 'POST') ->
+            {false, ReqData, State#{ account => get_from_path(ReqData, account) }};
+        withdraw when (Length == 1) and (Method == 'POST') ->
+            {false, ReqData, State#{ account => get_from_path(ReqData, account) }};
+        transfer when (Length == 1) and (Method == 'POST') ->
+            {false, ReqData, State#{ account => get_from_path(ReqData, account) }};
+        _ -> {true, ReqData, State}
+    end.
 
 to_json(ReqData, State) ->
-    Json =
-        case maps:get(op, State) of
-            new ->
-                {struct, [{account, bank:new(bank)}, {balance, 0}]};
-            balance ->
-                {struct, [{account, maps:get(account, State)},
-                          {balance, bank:balance(maps:get(account, State), bank)}]};
-            deposit ->
-                {struct, [{result, bank:deposit(maps:get(account, State),
-                                                maps:get(quantity, State), bank)}]};
-            withdraw ->
-                {struct, [{result, bank:withdraw(maps:get(account, State),
-                                                 maps:get(quantity, State), bank)}]};
-            transfer ->
-                {struct, [{result, bank:transfer(maps:get(account, State), maps:get(to_account, State),
-                                                 maps:get(quantity, State), bank)}]}
+    Account = maps:get(account, State),
+    Json = {struct, [{account, Account}, {balance, bank:balance(Account)}]},
+    {mochijson2:encode(Json), ReqData, State}.
+
+resource_exists(ReqData, State) ->
+    case maps:get(op, State) of
+        new -> {true, ReqData, State};
+        _   -> {bank:exists(maps:get(account, State)), ReqData, State}
+    end.
+
+%% POST
+
+post_is_create(ReqData, State) ->
+    {maps:get(op, State) == new, ReqData, State}.
+
+create_path(ReqData, State) ->
+    NewAccount = integer_to_list(bank:new()),
+    Path = "/" ++ NewAccount ++ "/",
+    {Path, ReqData, State#{ account => NewAccount }}.
+
+from_json(ReqData, State) ->
+    Json = {struct, [{account, maps:get(account, State)}, {balance, 0}]},
+    {true, wrq:set_resp_body(mochijson2:encode(Json), ReqData), State}.
+
+allow_missing_post(ReqData, State) ->
+    {true, ReqData, State}.
+
+process_post(ReqData, State) ->
+    {struct, Values} = mochijson2:decode(wrq:req_body(ReqData)),
+    Op = maps:get(op, State),
+    Account = maps:get(account, State),
+    Result =
+        case Values of
+            [{_, Quantity}] when Op == deposit ->
+                bank:deposit(Account, Quantity);
+            [{_, Quantity}] when Op == withdraw ->
+                bank:withdraw(Account, Quantity);
+            [{_, Quantity}, {to, ToAccount}] when Op == transfer ->
+                bank:transfer(Account, ToAccount, Quantity)
         end,
-    {mochijson:encode(Json), ReqData, State}.
+    Json =
+	case Result of
+	    {ok, Balance} ->
+		{struct, [{account, Account}, {balance, Balance}]};
+	    {error, Reason} ->
+		{struct, [{error, Reason}]}
+	end,
+    {true, wrq:set_resp_body(mochijson2:encode(Json), ReqData), State}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 get_from_path(ReqData, Key) ->

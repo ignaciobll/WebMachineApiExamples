@@ -8,10 +8,11 @@
 -spec dispatch() -> [webmachine_dispatcher:route()].
 dispatch() ->
     lists:flatten([
-		   {[account, op, quantity, to_account], bank_resource, []},
-                   {[account, op, quantity], bank_resource, []},
-		   {[account, op], bank_resource, []},
-		   {[op], bank_resource, []}
+		   {["new"], bank_resource, [new]},
+		   {[account], bank_resource, [get_info]},
+		   {[account, "deposit"], bank_resource, [deposit]},
+		   {[account, "withdraw"], bank_resource, [withdraw]},
+		   {[account, "transfer"], bank_resource, [transfer]}
                   ]).
 
 web_config() ->

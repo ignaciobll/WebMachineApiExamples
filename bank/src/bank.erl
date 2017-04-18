@@ -4,7 +4,7 @@
 
 -export([init/1]).
 -export([handle_call/3, terminate/2]).
--export([start/0, new/1, withdraw/3, deposit/3, transfer/4, balance/2, exists/2]).
+-export([start/0, new/0, withdraw/2, deposit/2, transfer/3, balance/1, exists/1]).
 
 init(_) -> {ok, maps:new()}.
 
@@ -21,30 +21,30 @@ handle_call(Msg, _From, State) ->
         {withdraw, AccountNumber, Quantity} ->
             case maps:find(AccountNumber, State) of
                 error ->
-                    {reply, "account doesn't exists", State};
+                    {reply, {error, "account doesn't exists"}, State};
                 {ok, Balance} when Balance < Quantity ->
-                    {reply, "not enough money", State};
+                    {reply, {error, "not enough money"}, State};
                 {ok, Balance} ->
-                    {reply, ok, State#{ AccountNumber := Balance-Quantity }}
+                    {reply, {ok, Balance-Quantity}, State#{ AccountNumber := Balance-Quantity }}
             end;
         {deposit, AccountNumber, Quantity} ->
             case maps:find(AccountNumber, State) of
                 {ok, Balance} ->
                     #{ AccountNumber := Balance } = State,
-                    {reply, ok, State#{ AccountNumber := Balance+Quantity }};
+                    {reply, {ok, Balance+Quantity}, State#{ AccountNumber := Balance+Quantity }};
                 error ->
-                    {reply, "account doesn't exists", State}
+                    {reply, {error, "account doesn't exists"}, State}
             end;
         {transfer, FromAccount, ToAccount, Quantity} ->
             case {maps:find(FromAccount, State), maps:find(ToAccount, State)} of
                 {error, _} ->
-                    {reply, "from account doesn't exists", State};
+                    {reply, {error, "from account doesn't exists"}, State};
                 {_, error} ->
-                    {reply, "to account doesn't exists", State};
+                    {reply, {error, "to account doesn't exists"}, State};
                 {{ok, FromBalance}, {ok, _}} when FromBalance < Quantity ->
-                    {reply, "not enough money", State};
+                    {reply, {error, "not enough money"}, State};
                 {{ok, FromBalance}, {ok, ToBalance}} ->
-                    {reply, ok,
+                    {reply, {ok, FromBalance-Quantity},
                      State#{ FromAccount := FromBalance-Quantity, ToAccount := ToBalance+Quantity }}
             end;
         {balance, AccountNumber} ->
@@ -64,26 +64,23 @@ terminate(_,_) -> ok.
 
 start() ->
     {ok, Pid} = gen_server:start(?MODULE,[],[]),
-    Pid.
-%% case register(bank, Pid) of
-%%     true  -> ok;
-%%     false -> {error, "server already started"}
-%% end.
+    register(?MODULE, Pid),
+    ?MODULE.
 
-new(Bank) ->
-    gen_server:call(Bank,{new_account}).
+new() ->
+    gen_server:call(?MODULE ,{new_account}).
 
-withdraw(AccountNumber, Quantity, Bank) ->
-    gen_server:call(Bank, {withdraw, AccountNumber, Quantity}).
+withdraw(AccountNumber, Quantity) ->
+    gen_server:call(?MODULE, {withdraw, AccountNumber, Quantity}).
 
-deposit(AccountNumber, Quantity, Bank) ->
-    gen_server:call(Bank, {deposit, AccountNumber, Quantity}).
+deposit(AccountNumber, Quantity) ->
+    gen_server:call(?MODULE, {deposit, AccountNumber, Quantity}).
 
-transfer(FromAccount, ToAccount, Quantity, Bank) ->
-    gen_server:call(Bank, {transfer, FromAccount, ToAccount, Quantity}).
+transfer(FromAccount, ToAccount, Quantity) ->
+    gen_server:call(?MODULE, {transfer, FromAccount, ToAccount, Quantity}).
 
-balance(AccountNumber, Bank) ->
-    gen_server:call(Bank, {balance, AccountNumber}).
+balance(AccountNumber) ->
+    gen_server:call(?MODULE, {balance, AccountNumber}).
 
-exists(AccountNumber, Bank) ->
-    lists:member(AccountNumber, gen_server:call(Bank, {keys})).
+exists(AccountNumber) ->
+    lists:member(AccountNumber, gen_server:call(?MODULE, {keys})).

@@ -10,7 +10,7 @@
 -export([init/1]).
 
 start_link() ->
-    register(bank, bank:start()),
+    bank:start(),
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 init([]) ->
