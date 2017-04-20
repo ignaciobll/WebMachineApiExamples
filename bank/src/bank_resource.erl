@@ -17,6 +17,7 @@
 -include_lib("webmachine/include/webmachine.hrl").
 
 init([Op]) ->
+    io:format("request: ~p~n", [Op]),
     {ok, #{ op => Op }}.
 %% {{trace, "/tmp"}, #{ op => Op }}. %% Debug
 
@@ -51,8 +52,8 @@ malformed_request(ReqData, State) ->
 
 to_json(ReqData, State) ->
     Account = maps:get(account, State),
-    Json = {struct, [{account, Account}, {balance, bank:balance(Account)}]},
-    {mochijson2:encode(Json), ReqData, State}.
+    Json = {struct, [{account, integer_to_list(Account)}, {balance, bank:balance(Account)}]},
+    {mochijson:encode(Json), ReqData, State}.
 
 resource_exists(ReqData, State) ->
     case maps:get(op, State) of
@@ -67,12 +68,11 @@ post_is_create(ReqData, State) ->
 
 create_path(ReqData, State) ->
     NewAccount = integer_to_list(bank:new()),
-    Path = "/" ++ NewAccount ++ "/",
-    {Path, ReqData, State#{ account => NewAccount }}.
+    {"/" ++ NewAccount ++ "/", ReqData, State#{ account => NewAccount }}.
 
 from_json(ReqData, State) ->
     Json = {struct, [{account, maps:get(account, State)}, {balance, 0}]},
-    {true, wrq:set_resp_body(mochijson2:encode(Json), ReqData), State}.
+    {true, wrq:set_resp_body(mochijson:encode(Json), ReqData), State}.
 
 allow_missing_post(ReqData, State) ->
     {true, ReqData, State}.
@@ -83,21 +83,26 @@ process_post(ReqData, State) ->
     Account = maps:get(account, State),
     Result =
         case Values of
-            [{_, Quantity}] when Op == deposit ->
+            [{<<"quantity">>, Quantity}] when Op == deposit ->
                 bank:deposit(Account, Quantity);
-            [{_, Quantity}] when Op == withdraw ->
+            [{<<"quantity">>, Quantity}] when Op == withdraw ->
                 bank:withdraw(Account, Quantity);
-            [{_, Quantity}, {to, ToAccount}] when Op == transfer ->
+            [{<<"quantity">>, Quantity}, {<<"to">>, ToAccount}] when Op == transfer ->
                 bank:transfer(Account, ToAccount, Quantity)
         end,
     Json =
-	case Result of
-	    {ok, Balance} ->
-		{struct, [{account, Account}, {balance, Balance}]};
-	    {error, Reason} ->
-		{struct, [{error, Reason}]}
-	end,
-    {true, wrq:set_resp_body(mochijson2:encode(Json), ReqData), State}.
+        case Result of
+            {ok, Balance} ->
+                {struct, [{account, integer_to_list(Account)}, {balance, Balance}]};
+            {error, Reason} ->
+                {struct, [{error, Reason}]}
+        end,
+    HttpRes =
+        case Result of
+            {ok, _} -> true;
+            {error, _} -> {halt, 304}
+        end,
+    {HttpRes, wrq:set_resp_body(mochijson:encode(Json), ReqData), State}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 get_from_path(ReqData, Key) ->

@@ -68,7 +68,7 @@ start() ->
     ?MODULE.
 
 new() ->
-    gen_server:call(?MODULE ,{new_account}).
+    gen_server:call(?MODULE, {new_account}).
 
 withdraw(AccountNumber, Quantity) ->
     gen_server:call(?MODULE, {withdraw, AccountNumber, Quantity}).
