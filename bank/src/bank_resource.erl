@@ -58,7 +58,14 @@ to_json(ReqData, State) ->
 resource_exists(ReqData, State) ->
     case maps:get(op, State) of
         new -> {true, ReqData, State};
-        _   -> {bank:exists(maps:get(account, State)), ReqData, State}
+        _   -> 
+	    case bank:exists(maps:get(account, State)) of
+		true  -> {true, ReqData, State};
+		false -> 
+		    Json = {struct, [{error, "Not found"}]},
+		    {{halt, 404}, wrq:set_resp_body(mochijson:encode(Json), ReqData), State}
+	    %% {bank:exists(maps:get(account, State)), ReqData, State}
+	    end
     end.
 
 %% POST
@@ -87,6 +94,8 @@ process_post(ReqData, State) ->
                 bank:deposit(Account, Quantity);
             [{<<"quantity">>, Quantity}] when Op == withdraw ->
                 bank:withdraw(Account, Quantity);
+	    [{<<"to">>, ToAccount}, {<<"quantity">>, Quantity}] when Op == transfer ->
+                bank:transfer(Account, ToAccount, Quantity);
             [{<<"quantity">>, Quantity}, {<<"to">>, ToAccount}] when Op == transfer ->
                 bank:transfer(Account, ToAccount, Quantity)
         end,
@@ -100,7 +109,7 @@ process_post(ReqData, State) ->
     HttpRes =
         case Result of
             {ok, _} -> true;
-            {error, _} -> {halt, 304}
+            {error, _} -> {halt, 500}
         end,
     {HttpRes, wrq:set_resp_body(mochijson:encode(Json), ReqData), State}.
 

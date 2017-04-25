@@ -80,7 +80,7 @@ process_post(ReqData, State) ->
             set ->
                 {struct, [{result, counters_server:set(maps:get(id, State),maps:get(value, State))}]}
         end,
-    {true, wrq:set_resp_body(mochijson2:encode(Json), ReqData), State}.
+    {true, wrq:set_resp_body(mochijson:encode(Json), ReqData), State}.
 
 %% function that creates the json response
 to_json(ReqData, State) ->
@@ -91,7 +91,7 @@ to_json(ReqData, State) ->
             ids ->
                 {struct, [{ids, {array, counters_server:get_ids()}}]}
         end,
-    {mochijson2:encode(Json), ReqData, State}.
+    {mochijson:encode(Json), ReqData, State}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 get_from_path(ReqData, Key) ->
