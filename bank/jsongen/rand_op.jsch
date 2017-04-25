@@ -1,0 +1,58 @@
+{
+    "links": [
+        {
+            "rel": "get_rand",
+            "href": "http://localhost:8080/#integer.jsch#/",
+            "title": "get_rand",
+            "method": "GET",
+            "targetSchema": { "$ref": "balance.jsch#" }
+        },
+	{
+            "rel": "deposit_rand",
+            "href": "http://localhost:8080/#integer.jsch#/deposit",
+            "title": "deposit_rand",
+            "method": "POST",
+            "schema": {
+                "type": "object",
+                "required": ["quantity"],
+                "properties": {
+                    "quantity": { "type": "integer" }
+                },
+                "additionalProperties": false
+
+            },
+            "targetSchema": { "$ref": "balance.jsch#" }
+        },
+        {
+            "rel": "withdraw_rand",
+            "href": "http://localhost:8080/#integer.jsch#/withdraw",
+            "title": "withdraw_rand",
+            "method": "POST",
+            "schema": {
+                "type": "object",
+                "required": ["quantity"],
+                "properties": {
+                    "quantity": { "type": "integer" }
+                },
+                "additionalProperties": false
+            },
+            "targetSchema": { "$ref": "balance.jsch#" }
+        },
+	{
+            "rel": "transfer_rand",
+            "href": "http://localhost:8080/#integer.jsch#/transfer",
+            "title": "transfer_rand",
+            "method": "POST",
+            "schema": {
+                "type": "object",
+                "required": ["quantity","to"],
+                "properties": {
+                    "quantity": { "type": "integer" },
+		    "to": { "type": "string" }
+                },
+                "additionalProperties": false
+            },
+            "targetSchema": { "$ref": "balance.jsch#" }
+        }
+    ]
+}

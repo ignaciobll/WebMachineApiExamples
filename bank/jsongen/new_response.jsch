@@ -1,0 +1,65 @@
+{
+    "type": "object",
+    "required": ["account", "balance"],
+    "status": 201,
+    "properties": {
+        "account": { "type": "string" },
+        "balance": { "type": "integer" }
+    },
+    "links": [
+        {
+            "rel": "get",
+            "href": "http://localhost:8080/{account}/",
+            "title": "get",
+            "method": "GET",
+            "targetSchema": { "$ref": "balance.jsch#" }
+        },
+        {
+            "rel": "deposit",
+            "href": "http://localhost:8080/{account}/deposit",
+            "title": "deposit",
+            "method": "POST",
+            "schema": {
+                "type": "object",
+                "required": ["quantity"],
+                "properties": {
+                    "quantity": { "type": "integer" }
+                },
+                "additionalProperties": false
+
+            },
+            "targetSchema": { "$ref": "balance.jsch#" }
+        },
+        {
+            "rel": "withdraw",
+            "href": "http://localhost:8080/{account}/withdraw",
+            "title": "withdraw",
+            "method": "POST",
+            "schema": {
+                "type": "object",
+                "required": ["quantity"],
+                "properties": {
+                    "quantity": { "type": "integer" }
+                },
+                "additionalProperties": false
+            },
+            "targetSchema": { "$ref": "balance.jsch#" }
+        },
+	{
+            "rel": "transfer",
+            "href": "http://localhost:8080/{account}/transfer",
+            "title": "transfer",
+            "method": "POST",
+            "schema": {
+                "type": "object",
+                "required": ["quantity","to"],
+                "properties": {
+                    "quantity": { "type": "integer" },
+		    "to": { "type": "string" }
+                },
+                "additionalProperties": false
+            },
+            "targetSchema": { "$ref": "balance.jsch#" }
+        }
+    ]
+}
