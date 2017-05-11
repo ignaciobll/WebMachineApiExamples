@@ -1,39 +1,9 @@
 {
-    "anyOf": [
-        {
-            "type": "object",
-            "required": ["account", "balance"],
-            "status": 200,
-            "properties": {
-                "account": { "type": "string" },
-                "balance": { "type": "integer" }
-            },
-            "additionalProperties": false
-        },
-        {
-            "type": "object",
-            "required": ["error"],
-            "status": 500,
-            "properties": {
-                "error": {
-                    "type": "string",
-		     "not": {
-                      "enum": ["Not found"]
-                    }
-                }
-            },
-            "additionalProperties": false
-        },
-        {
-            "type": "object",
-            "required": ["error"],
-            "status": 404,
-            "properties": {
-                "error": {
-                    "enum": ["Not found"]
-                }
-            },
-            "additionalProperties": false
-        }
-    ]
+    "type": "object",
+    "required": ["account", "balance", "status"],
+    "properties": {
+        "account": { "type": "string"  },
+        "balance": { "type": "integer" }
+    },
+    "additionalProperties": false
 }

@@ -1,15 +1,74 @@
 {
     "links": [
-        {
-            "rel":"new",
-            "href": "http://localhost:8080/new",
-            "title": "new",
-            "method": "POST",
+	{
+	    "rel": "new",
+	    "href": "http://localhost:8080/new",
+	    "method": "POST",
 	    "schema": {
 		"type": "object",
 		"additionalProperties": false
 	    },
-            "targetSchema" : { "$ref": "new_response.jsch#" }
-        }
+	    "title": "new",
+	    "targetSchema": { "$ref": "new_response.jsch#" }
+	},
+	{
+            "rel": "get",
+            "href": "http://localhost:8080/#integer.jsch#/",
+	    "title": "rand_get",
+            "method": "GET",
+	    "targetSchema": { "$ref": "response.jsch#" }
+	},
+	{
+	    "rel": "rand_deposit",
+            "href": "http://localhost:8080/#integer.jsch#/deposit",
+	    "title": "rand_deposit",
+            "method": "POST",
+            "schema": {
+		"type": "object",
+		"required": ["quantity"],
+		"properties": {
+		    "quantity": { "type": "integer" }
+		},
+		"additionalProperties" : false
+            },
+	    "targetSchema": { "$ref": "response.jsch#" }
+	},
+	{
+	    "rel": "rand_withdraw",
+            "href": "http://localhost:8080/#integer.jsch#/withdraw",
+	    "title": "rand_withdraw",
+            "method": "POST",
+            "schema": {
+		"type": "object",
+		"required": ["quantity"],
+		"properties": {
+		    "quantity": { "type": "integer" }
+		},
+		"additionalProperties" : false
+            },
+	    "targetSchema": {
+		"$ref": "response.jsch#",
+		"error": [304]
+	    }
+	},
+	{
+	    "rel": "rand_transfer",
+            "href": "http://localhost:8080/{account}/rand_transfer",
+	    "title": "transfer",
+            "method": "POST",
+            "schema": {
+		"type": "object",
+		"required": ["quantity", "to"],
+		"properties": {
+		    "quantity": { "type": "integer" },
+		    "to": { "type": "string" }
+		},
+		"additionalProperties" : false
+            },
+	    "targetSchema": {
+		"$ref": "response.jsch#",
+		"error": [304]
+	    }
+	}
     ]
 }
