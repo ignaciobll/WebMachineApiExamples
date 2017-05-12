@@ -4,6 +4,7 @@
          allowed_methods/2,
          malformed_request/2,
          resource_exists/2,
+         is_authorized/2,
          content_types_provided/2,
          content_types_accepted/2,
          post_is_create/2,
@@ -67,6 +68,29 @@ resource_exists(ReqData, State) ->
       end
   end.
 
+%% is_authorized(ReqData, State) ->
+%%   {true, ReqData, State}.
+
+is_authorized(ReqData, State) ->
+  Json = {struct, [{error, "Unauthorized"}]},
+  case wrq:get_req_header("Authorization", ReqData) of
+    "Basic "++Base64 ->
+      Str = base64:mime_decode_to_string(Base64),
+      case string:tokens(Str, ":") of
+	[User, Pass] ->
+	  case auth_bank:login(User, Pass) of
+	    ok -> {true, ReqData, State};
+	    _ ->
+	      {{halt, 401}, wrq:set_resp_body(mochijson:encode(Json), ReqData), State}
+	  end;
+        _ ->
+          {{halt, 401}, wrq:set_resp_body(mochijson:encode(Json), ReqData), State}
+      end;
+    _ ->
+      {{halt, 401}, wrq:set_resp_body(mochijson:encode(Json), ReqData), State}
+  end.
+
+
 %% POST
 
 post_is_create(ReqData, State) ->
@@ -96,9 +120,9 @@ process_post(ReqData, State) ->
       withdraw when Quantity =/= undefined ->
         bank:withdraw(Account, Quantity);
       transfer when (Quantity =/= undefined) and (To =/= undefined) ->
-	bank:transfer(Account, To, Quantity);
+        bank:transfer(Account, To, Quantity);
       _ ->
-	{error, "wrong body"}
+        {error, "wrong body"}
     end,
   Json =
     case Result of

@@ -1,0 +1,11 @@
+{
+    "type": "object",
+    "required": ["error"],
+    "status": 404,
+    "properties": {
+        "error": {
+            "enum": ["Not found"]
+        }
+    },
+    "additionalProperties": false
+}
